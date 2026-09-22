@@ -1,0 +1,68 @@
+# File cấu hình chính của ứng dụng Spring Boot
+spring:
+  application:
+    name: duan
+  profiles:
+    active: dev # môi trường đang hoạt động (local, dev, prod)
+
+  # Tự động nạp cấu hình bí mật cục bộ nếu tồn tại (được .gitignore bảo vệ)
+  config:
+    import: optional:application-dev.yml
+
+  main:
+    banner-mode: "off"
+
+  # Cấu hình Database
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/shop_db}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:your_db_password}
+
+  # Cấu hình JPA / Hibernate
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    # properties:
+    #   hibernate:
+    #     format_sql: true
+  flyway:
+    enabled: false # tắt Flyway trong môi trường dev để tránh xung đột với Hibernate
+
+  # Cấu hình Redis
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+  # OAuth2 Security
+  security:
+    oauth2:
+      client:
+        registration:
+          facebook:
+            client-id: ${FACEBOOK_CLIENT_ID:YOUR_FACEBOOK_CLIENT_ID}
+            client-secret: ${FACEBOOK_CLIENT_SECRET:YOUR_FACEBOOK_CLIENT_SECRET}
+          google:
+            client-id: ${GOOGLE_CLIENT_ID:YOUR_GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET:YOUR_GOOGLE_CLIENT_SECRET}
+
+# Cổng Server
+server:
+  port: 8080
+
+# Cấu hình cổng thanh toán MoMo
+momo:
+  access-key: ${MOMO_ACCESS_KEY:YOUR_MOMO_ACCESS_KEY}
+  secret-key: ${MOMO_SECRET_KEY:YOUR_MOMO_SECRET_KEY}
+  partner-code: ${MOMO_PARTNER_CODE:MOMO}
+  redirect-url: ${MOMO_REDIRECT_URL:http://localhost:5173/momo/return}
+  ipn-url: ${MOMO_IPN_URL:https://webhook.site/b3088a6a-2d17-4f8d-a383-71389a6c600b}
+
+# JWT
+jwt:
+  secret-key: ${JWT_SECRET_KEY:394850752C294B4428472B4B6250655368566B5970337336763979034982059A}
+
+# Cấu hình URL Frontend (override trong từng profile)
+app:
+  frontend-url: ${FRONTEND_URL:http://localhost:5173}

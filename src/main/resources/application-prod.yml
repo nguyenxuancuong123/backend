@@ -1,0 +1,90 @@
+# ============================================================
+# application-prod.yml — Cấu hình môi trường Production
+# ============================================================
+spring:
+  # Cấu hình Database (bắt buộc dùng biến môi trường trên server)
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    hikari:
+      maximum-pool-size: 20        # Pool lớn hơn cho production
+      minimum-idle: 5
+      idle-timeout: 600000         # 10 phút
+      max-lifetime: 1800000        # 30 phút
+      connection-timeout: 30000
+      pool-name: HikariProd
+
+  # JPA / Hibernate — Prod: validate thôi, không đụng schema
+  jpa:
+    hibernate:
+      ddl-auto: validate           # An toàn — chỉ kiểm tra cấu trúc
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+
+  # Flyway — Bật khi prod để quản lý migration có kiểm soát
+  flyway:
+    enabled: true
+    locations: classpath:migration
+    baseline-on-migrate: true
+
+  # Redis
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}   # Nếu Redis có auth thì set biến này
+
+  # OAuth2 (bắt buộc dùng biến môi trường)
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+          facebook:
+            client-id: ${FACEBOOK_CLIENT_ID}
+            client-secret: ${FACEBOOK_CLIENT_SECRET}
+
+# Server
+server:
+  port: ${PORT:8080}
+  compression:
+    enabled: true                  # Nén response để tiết kiệm băng thông
+    mime-types: application/json,application/xml,text/html
+    min-response-size: 1024
+
+# Cấu hình URL Frontend (prod)
+app:
+  frontend-url: ${FRONTEND_URL:https://your-domain.com}
+
+# Logging — Prod: chỉ log WARN trở lên (tiết kiệm I/O)
+logging:
+  level:
+    root: WARN
+    duan.com.example: INFO         # Log INFO cho code của mình
+    org.springframework.security: WARN
+    org.springframework.web: WARN
+    org.hibernate: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} %-5level [%thread] %logger{50} - %msg%n"
+  file:
+    name: logs/app-prod.log
+    max-size: 100MB
+    max-history: 30
+
+# MoMo (prod — bắt buộc dùng biến môi trường)
+momo:
+  access-key: ${MOMO_ACCESS_KEY}
+  secret-key: ${MOMO_SECRET_KEY}
+  partner-code: ${MOMO_PARTNER_CODE}
+  redirect-url: ${MOMO_REDIRECT_URL}
+  ipn-url: ${MOMO_IPN_URL}
+
+# JWT (prod — bắt buộc dùng secret mạnh từ biến môi trường)
+jwt:
+  secret-key: ${JWT_SECRET_KEY}
+
