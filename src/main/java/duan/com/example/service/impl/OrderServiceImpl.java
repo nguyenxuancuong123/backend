@@ -319,11 +319,10 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<OrderResponse> getAllDonHang() {
-        return orderRepository.findAll()
-                .stream()
-                .map(this::toResponse)
-                .collect(Collectors.toList());
+    public org.springframework.data.domain.Page<OrderResponse> getDonHangsPaginated(int page, int size) {
+        int pageIndex = page > 0 ? page - 1 : 0;
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(pageIndex, size, org.springframework.data.domain.Sort.by("ngayDat").descending());
+        return orderRepository.findAll(pageable).map(this::toResponse);
     }
 
     @Override

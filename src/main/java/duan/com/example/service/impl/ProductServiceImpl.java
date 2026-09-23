@@ -18,17 +18,13 @@ public class ProductServiceImpl implements ProductService {
     @Autowired
     private ProductRepository productRepository;
 
-    @Override
-    public List<Product> getAllSanPhams() {
-        return productRepository.findAll();
-    }
 
     @Override
     public Page<Product> getSanPhamsPaginated(int page, int size) {
-        // PageRequest nhận index bắt đầu từ 0, nếu frontend gửi page = 1 thì trừ đi 1
+        // Sắp xếp theo rating giảm dần (PageRequest không cần Sort vì query đã có ORDER BY)
         int pageIndex = page > 0 ? page - 1 : 0;
         Pageable pageable = PageRequest.of(pageIndex, size);
-        return productRepository.findAll(pageable);
+        return productRepository.findAllOrderByRatingDesc(pageable);
     }
 
     @Override
@@ -36,14 +32,10 @@ public class ProductServiceImpl implements ProductService {
         return productRepository.findById(masp);
     }
 
-    @Override
-    public List<Product> getSanPhamsByDanhMuc(Integer madm) {
-        return productRepository.findByDM_Id(madm);
-    }
 
     @Override
     public Page<Product> getSanPhamsByDanhMucPaginated(Integer madm, int page, int size) {
-        // PageRequest nhận index bắt đầu từ 0, nếu frontend gửi page = 1 thì trừ đi 1
+        // Sắp xếp theo rating giảm dần (query đã có ORDER BY)
         int pageIndex = page > 0 ? page - 1 : 0;
         Pageable pageable = PageRequest.of(pageIndex, size);
         return productRepository.findByDM_Id(madm, pageable);
@@ -57,5 +49,13 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public void deleteSanPham(Integer masp) {
         productRepository.deleteById(masp);
+    }
+
+    @Override
+    public Page<Product> searchByKeyword(String keyword, int page, int size) {
+        int pageIndex = page > 0 ? page - 1 : 0;
+        // Dùng un-paged Pageable vì query đã có ORDER BY — chỉ cần offset/limit
+        Pageable pageable = PageRequest.of(pageIndex, size);
+        return productRepository.searchByKeyword(keyword.trim(), pageable);
     }
 }

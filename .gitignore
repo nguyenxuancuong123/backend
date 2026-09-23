@@ -41,3 +41,8 @@ src/main/resources/application-dev.yml
 images/
 logs/
 *.log
+
+# Environment variables
+.env
+.env.*
+!.env.example

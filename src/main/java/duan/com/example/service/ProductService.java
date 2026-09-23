@@ -9,17 +9,11 @@ import java.util.Optional;
 
 public interface ProductService {
 
-    // lấy danh sách sản phẩm
-    List<Product> getAllSanPhams();
-
     // lấy danh sách sản phẩm có phân trang và sắp xếp
     Page<Product> getSanPhamsPaginated(int page, int size);
 
     // tìm kiếm id sản phẩm
     Optional<Product> getSanPhamById(Integer masp);
-
-    // tìm sản phẩm trong danh mục
-    List<Product> getSanPhamsByDanhMuc(Integer madm);
 
     // tìm sản phẩm trong danh mục có phân trang
     Page<Product> getSanPhamsByDanhMucPaginated(Integer madm, int page, int size);
@@ -29,4 +23,7 @@ public interface ProductService {
 
     // xóa sản phẩm
     void deleteSanPham(Integer masp);
+
+    // tìm kiếm sản phẩm theo từ khóa (có phân trang, sắp xếp theo rating)
+    Page<Product> searchByKeyword(String keyword, int page, int size);
 }

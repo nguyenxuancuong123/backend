@@ -16,22 +16,28 @@ public class ProductController {
     @Autowired
     private ProductService sanphamService;
 
-    // lấy tất cả sản phẩm
-    @GetMapping
-    public List<Product> getAllSanPhams() {
-        return sanphamService.getAllSanPhams();
-    }
 
-    // lấy danh sách sản phẩm phân trang
+    // Lấy danh sách sản phẩm phân trang — mặc định sắp xếp theo rating giảm dần
     @GetMapping("/page")
     public ResponseEntity<Page<Product>> getSanPhamsPaginated(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size) {
-        Page<Product> sanPhamPage = sanphamService.getSanPhamsPaginated(page, size);
-        return ResponseEntity.ok(sanPhamPage);
+        return ResponseEntity.ok(sanphamService.getSanPhamsPaginated(page, size));
     }
 
-    // lấy sản phẩm theo (id)
+    // Tìm kiếm sản phẩm theo từ khóa — phân trang, sắp xếp theo rating giảm dần
+    @GetMapping("/search")
+    public ResponseEntity<Page<Product>> searchSanPham(
+            @RequestParam String keyword,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        if (keyword == null || keyword.isBlank()) {
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.ok(sanphamService.searchByKeyword(keyword, page, size));
+    }
+
+    // Lấy sản phẩm theo (id)
     @GetMapping("/{masp}")
     public ResponseEntity<Product> getSanPhamById(@PathVariable Integer masp) {
         return sanphamService.getSanPhamById(masp)
@@ -39,19 +45,13 @@ public class ProductController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // lấy sản phẩm theo danh mục
-    @GetMapping("/category/{madm}")
-    public List<Product> getSanPhamsByDanhMuc(@PathVariable Integer madm) {
-        return sanphamService.getSanPhamsByDanhMuc(madm);
-    }
 
-    // lấy sản phẩm theo danh mục có phân trang
+    // Lấy sản phẩm theo danh mục có phân trang — sắp xếp theo rating giảm dần
     @GetMapping("/category/{madm}/page")
     public ResponseEntity<Page<Product>> getSanPhamsByDanhMucPaginated(
             @PathVariable Integer madm,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size) {
-        Page<Product> sanPhamPage = sanphamService.getSanPhamsByDanhMucPaginated(madm, page, size);
-        return ResponseEntity.ok(sanPhamPage);
+        return ResponseEntity.ok(sanphamService.getSanPhamsByDanhMucPaginated(madm, page, size));
     }
 }

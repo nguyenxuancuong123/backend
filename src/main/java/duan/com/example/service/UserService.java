@@ -2,6 +2,7 @@ package duan.com.example.service;
 
 import duan.com.example.dto.response.ProFileResponse;
 import duan.com.example.entity.role.Role;
+import org.springframework.data.domain.Page;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
 import java.util.List;
@@ -14,7 +15,7 @@ public interface UserService {
     ProFileResponse getHoSo(String email);
 
     // Lấy danh sách tất cả người dùng
-    List<ProFileResponse> getAllUsers();
+    Page<ProFileResponse> getUsersPaginated(int page, int size);
 
     // Lấy thông tin người dùng theo ID
     ProFileResponse getUserById(Integer id);

@@ -1803,5 +1803,94 @@ ALTER TABLE ONLY public.sanphambienthe
 -- PostgreSQL database dump complete
 --
 
+-- 1. Insert 1,000,000 dòng vào bảng sanpham
+WITH new_products AS (
+    INSERT INTO public.sanpham (tensp, madm, giaban, giakhuyenmai, mota, hinhanh, ngaythem)
+    SELECT 
+        'Sản phẩm thử nghiệm ' || i AS tensp,
+        floor(random() * 15 + 1)::int AS madm, -- Ngẫu nhiên danh mục từ 1 đến 15
+        (floor(random() * 90 + 10) * 10000)::numeric(12,2) AS giaban, -- Giá từ 100k đến 1tr
+        CASE 
+            WHEN random() > 0.5 THEN (floor(random() * 8 + 1) * 10000)::numeric(12,2) 
+            ELSE NULL 
+        END AS giakhuyenmai,
+        'Mô tả chi tiết tự động cho sản phẩm mã ' || i AS mota,
+        'product_' || ((i % 15) + 1) || '.jpg' AS hinhanh,
+        NOW() - (random() * interval '365 days') AS ngaythem
+    FROM generate_series(1, 1000000) AS s(i)
+    RETURNING masp, giaban
+)
+-- 2. Insert đồng thời các biến thể tương ứng cho 1,000,000 sản phẩm vừa tạo
+INSERT INTO public.sanphambienthe (masp, masize, mamau, soluongton, giaban)
+SELECT 
+    np.masp,
+    floor(random() * 6 + 1)::int AS masize,   -- Masize từ 1 đến 6
+    floor(random() * 20 + 1)::int AS mamau,  -- Mamau từ 1 đến 20
+    floor(random() * 100 + 1)::int AS soluongton,
+    np.giaban
+FROM new_products np
+CROSS JOIN LATERAL generate_series(1, floor(random() * 3 + 1)::int); -- 1 đến 3 biến thể mỗi SP
+
+
+-- Kích hoạt extension hỗ trợ tìm kiếm chuỗi con và fuzzy search
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
+-- Tạo GIN Index trên cột tensp
+CREATE INDEX idx_sanpham_tensp_trgm ON public.sanpham USING gin (tensp gin_trgm_ops);
+
+SELECT masp, tensp, giaban, hinhanh, diem_danh_gia_tb
+FROM public.sanpham
+WHERE tensp ILIKE '%khoác%'
+ORDER BY diem_danh_gia_tb DESC
+LIMIT 20 OFFSET 0;
+
+------- Tạo bảng Đánh giá
+CREATE TABLE public.danhgia (
+    madanhgia SERIAL PRIMARY KEY,
+    masp INT NOT NULL REFERENCES public.sanpham(masp) ON DELETE CASCADE,
+    id_nguoidung INT NOT NULL REFERENCES public.nguoidung(id) ON DELETE CASCADE,
+    sodiem SMALLINT NOT NULL CHECK (sodiem BETWEEN 1 AND 5),
+    binhluan TEXT,
+    ngaytao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Index để tìm nhanh review theo sản phẩm
+CREATE INDEX idx_danhgia_masp ON public.danhgia(masp);
+
+ALTER TABLE public.sanpham 
+ADD COLUMN diem_danh_gia_tb NUMERIC(2,1) DEFAULT 0.0,
+ADD COLUMN so_luot_danh_gia INT DEFAULT 0;
+
+-- Index phục vụ ORDER BY điểm số giảm dần
+CREATE INDEX idx_sanpham_rating ON public.sanpham (diem_danh_gia_tb DESC, masp DESC);
+
+------------ Tạo Trigger tự động cập nhật Rating
+CREATE OR REPLACE FUNCTION public.cap_nhat_rating_sanpham()
+RETURNS TRIGGER AS $$
+DECLARE
+    v_masp INT;
+BEGIN
+    IF (TG_OP = 'DELETE') THEN
+        v_masp := OLD.masp;
+    ELSE
+        v_masp := NEW.masp;
+    END IF;
+
+    UPDATE public.sanpham
+    SET 
+        diem_danh_gia_tb = COALESCE((SELECT ROUND(AVG(sodiem), 1) FROM public.danhgia WHERE masp = v_masp), 0.0),
+        so_luot_danh_gia = (SELECT COUNT(*) FROM public.danhgia WHERE masp = v_masp)
+    WHERE masp = v_masp;
+
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_cap_nhat_rating
+AFTER INSERT OR UPDATE OR DELETE ON public.danhgia
+FOR EACH ROW
+EXECUTE FUNCTION public.cap_nhat_rating_sanpham();
+
+
 \unrestrict IkNzG5k0Fhobw2VTa9WfFhFlAtUqZQ6tJntnl46NCOtrmQF7tH96uqOg8B3IvG8
 

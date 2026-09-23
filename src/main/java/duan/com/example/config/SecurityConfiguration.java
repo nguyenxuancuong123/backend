@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -56,7 +57,8 @@ public class SecurityConfiguration {
     @Bean
     // SecurityFilterChain : dùng cấu hình chuỗi các bộ lọc bảo mật
     // -> phải đi qua thằng này trước rồi  mới đên controller
-    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity, ClientRegistrationRepository clientRepo) throws Exception{
+    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity, ClientRegistrationRepository clientRepo)
+            throws Exception{
         httpSecurity
                 // sử dụng bảo mật CORS và CSRF
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
@@ -70,9 +72,11 @@ public class SecurityConfiguration {
                         .requestMatchers("/ws/**").permitAll()
                         .requestMatchers("/images/**").permitAll()
                         .requestMatchers("/oauth2/**", "/login/**").permitAll()
-                        .requestMatchers("/api/v1/admin").hasAnyAuthority(Role.Admin.name())
-                        .requestMatchers("/api/v1/user").hasAnyAuthority(Role.User.name())
-                        .requestMatchers("/api/v1/employee").hasAnyAuthority(Role.Employee.name())
+                        // Review: GET public, POST/DELETE cần xác thực (logic phân quyền nằm trong service/controller)
+                        .requestMatchers(HttpMethod.GET, "/api/v1/review/**").permitAll()
+                        .requestMatchers("/api/v1/admin/**").hasAnyAuthority(Role.Admin.name())
+                        .requestMatchers("/api/v1/user/**").hasAnyAuthority(Role.User.name(), Role.Admin.name(), Role.Employee.name())
+                        .requestMatchers("/api/v1/employee/**").hasAnyAuthority(Role.Employee.name())
                         .anyRequest().authenticated())
                 .oauth2Login(oauth2 -> oauth2
                         .authorizationEndpoint(authorization -> authorization

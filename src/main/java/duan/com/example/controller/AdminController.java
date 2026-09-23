@@ -9,6 +9,7 @@ import duan.com.example.entity.Product;
 import duan.com.example.service.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -23,6 +24,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -36,6 +38,7 @@ public class AdminController {
     private final ProductService sanphamService;
     private final OrderService orderService;
     private final UserService userService;
+    private final ReviewService reviewService;
 
     @GetMapping
     public ResponseEntity<ProFileResponse> getHoSo(
@@ -82,10 +85,12 @@ public class AdminController {
                 .map(ResponseEntity::ok) // nhận đối tượng dc tìm thấy
                 .orElse(ResponseEntity.notFound().build()); // ko tìm thấy trả về lỗi
     }
-    // hiển thị danh sách sản phẩm có trong DB
+    // hiển thị danh sách sản phẩm có phân trang trong DB
     @GetMapping("/product/listproduct")
-    public List<Product> getAllSanPhams() {
-        return sanphamService.getAllSanPhams();
+    public ResponseEntity<Page<Product>> getSanPhamsPaginated(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(sanphamService.getSanPhamsPaginated(page, size));
     }
     // tìm kiếm sản phẩm
     @GetMapping("/product/{masp}")
@@ -94,10 +99,13 @@ public class AdminController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
-    // thêm sản phẩm vào danh mục
+    // lấy danh sách sản phẩm theo danh mục (có phân trang)
     @GetMapping("/product/category/{madm}")
-    public List<Product> getSanPhamsByDanhMuc(@PathVariable Integer madm) {
-        return sanphamService.getSanPhamsByDanhMuc(madm);
+    public ResponseEntity<Page<Product>> getSanPhamsByDanhMucPaginated(
+            @PathVariable Integer madm,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(sanphamService.getSanPhamsByDanhMucPaginated(madm, page, size));
     }
 
     // tạo sản phẩm mới
@@ -175,10 +183,12 @@ public class AdminController {
         return ResponseEntity.notFound().build();
     }
 
-    // xem danh sách các đơn hàng
+    // xem danh sách các đơn hàng có phân trang
     @GetMapping("/order/list")
-    public ResponseEntity<List<OrderResponse>> getAllDonHang() {
-        return ResponseEntity.ok(orderService.getAllDonHang());
+    public ResponseEntity<Page<OrderResponse>> getDonHangsPaginated(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(orderService.getDonHangsPaginated(page, size));
     }
 
     // cập nhật trạng thái đơn hàng
@@ -189,10 +199,12 @@ public class AdminController {
         return ResponseEntity.ok(orderService.capNhatTrangThai(madh, request));
     }
 
-    // Xem danh sách tất cả user
+    // Xem danh sách user có phân trang
     @GetMapping("/user")
-    public ResponseEntity<List<ProFileResponse>> getAllUsers() {
-        return ResponseEntity.ok(userService.getAllUsers());
+    public ResponseEntity<Page<ProFileResponse>> getUsersPaginated(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(userService.getUsersPaginated(page, size));
     }
 
     // Xem chi tiết một user theo ID
@@ -205,7 +217,7 @@ public class AdminController {
     @PutMapping("/user/{id}/role")
     public ResponseEntity<ProFileResponse> updateUserRole(
             @PathVariable Integer id,
-            @RequestBody java.util.Map<String, String> request) {
+            @RequestBody Map<String, String> request) {
         Role newRole = Role.valueOf(request.get("vaiTro"));
         return ResponseEntity.ok(userService.updateUserRole(id, newRole));
     }
@@ -214,8 +226,23 @@ public class AdminController {
     @PutMapping("/user/{id}/status")
     public ResponseEntity<ProFileResponse> updateUserStatus(
             @PathVariable Integer id,
-            @RequestBody java.util.Map<String, Boolean> request) {
+            @RequestBody Map<String, Boolean> request) {
         Boolean newStatus = request.get("trangThai");
         return ResponseEntity.ok(userService.updateUserStatus(id, newStatus));
+    }
+
+    // Xem danh sách tất cả đánh giá của khách hàng (phân trang)
+    @GetMapping("/review")
+    public ResponseEntity<Page<duan.com.example.dto.response.ReviewResponse>> getAllReviews(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(reviewService.layTatCaDanhGia(page, size));
+    }
+
+    // Xóa đánh giá vi phạm (Admin có quyền xóa)
+    @DeleteMapping("/review/{maDanhGia}")
+    public ResponseEntity<String> deleteReview(@PathVariable Integer maDanhGia) {
+        reviewService.xoaDanhGia(maDanhGia);
+        return ResponseEntity.ok("Đã xóa đánh giá thành công.");
     }
 }

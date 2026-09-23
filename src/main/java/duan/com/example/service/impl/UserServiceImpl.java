@@ -40,11 +40,10 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<ProFileResponse> getAllUsers() {
-        return userRepository.findAll()
-                .stream()
-                .map(this::mapToHoSoResponse)
-                .collect(Collectors.toList());
+    public org.springframework.data.domain.Page<ProFileResponse> getUsersPaginated(int page, int size) {
+        int pageIndex = page > 0 ? page - 1 : 0;
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(pageIndex, size, org.springframework.data.domain.Sort.by("id").descending());
+        return userRepository.findAll(pageable).map(this::mapToHoSoResponse);
     }
 
     @Override

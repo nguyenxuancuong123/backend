@@ -19,7 +19,7 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping
-    @PreAuthorize("hasAuthority('User')")
+    @PreAuthorize("hasAnyAuthority('User', 'Admin', 'Employee')")
     public ResponseEntity<ProFileResponse> getHoSo(
             @AuthenticationPrincipal UserDetails userDetails) {
         ProFileResponse response = userService.getHoSo(userDetails.getUsername());
