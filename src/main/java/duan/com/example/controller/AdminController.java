@@ -3,6 +3,7 @@ package duan.com.example.controller;
 import duan.com.example.dto.response.OrderResponse;
 import duan.com.example.dto.response.ProFileResponse;
 import duan.com.example.dto.request.UpdateStatusRequest;
+import duan.com.example.dto.response.ReviewResponse;
 import duan.com.example.entity.Category;
 import duan.com.example.entity.role.Role;
 import duan.com.example.entity.Product;
@@ -233,7 +234,7 @@ public class AdminController {
 
     // Xem danh sách tất cả đánh giá của khách hàng (phân trang)
     @GetMapping("/review")
-    public ResponseEntity<Page<duan.com.example.dto.response.ReviewResponse>> getAllReviews(
+    public ResponseEntity<Page<ReviewResponse>> getAllReviews(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size) {
         return ResponseEntity.ok(reviewService.layTatCaDanhGia(page, size));

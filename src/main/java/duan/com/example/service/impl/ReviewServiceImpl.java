@@ -13,6 +13,7 @@ import duan.com.example.service.ReviewService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -79,7 +80,7 @@ public class ReviewServiceImpl implements ReviewService {
         int pageIndex = page > 0 ? page - 1 : 0;
         // Lấy tất cả và sắp xếp mới nhất lên trước
         return reviewRepository
-                .findAll(PageRequest.of(pageIndex, size, org.springframework.data.domain.Sort.by("ngayTao").descending()))
+                .findAll(PageRequest.of(pageIndex, size, Sort.by("ngayTao").descending()))
                 .map(this::toResponse);
     }
 

@@ -16,6 +16,10 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.redisson.api.RAtomicLong;
 import org.redisson.api.RedissonClient;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -319,9 +323,9 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public org.springframework.data.domain.Page<OrderResponse> getDonHangsPaginated(int page, int size) {
+    public Page<OrderResponse> getDonHangsPaginated(int page, int size) {
         int pageIndex = page > 0 ? page - 1 : 0;
-        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(pageIndex, size, org.springframework.data.domain.Sort.by("ngayDat").descending());
+        Pageable pageable = PageRequest.of(pageIndex, size, Sort.by("ngayDat").descending());
         return orderRepository.findAll(pageable).map(this::toResponse);
     }
 

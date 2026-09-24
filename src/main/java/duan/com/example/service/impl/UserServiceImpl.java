@@ -6,6 +6,10 @@ import duan.com.example.entity.role.Role;
 import duan.com.example.repository.UserRepository;
 import duan.com.example.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -40,9 +44,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public org.springframework.data.domain.Page<ProFileResponse> getUsersPaginated(int page, int size) {
+    public Page<ProFileResponse> getUsersPaginated(int page, int size) {
         int pageIndex = page > 0 ? page - 1 : 0;
-        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(pageIndex, size, org.springframework.data.domain.Sort.by("id").descending());
+        Pageable pageable = PageRequest.of(pageIndex, size, Sort.by("id").descending());
         return userRepository.findAll(pageable).map(this::mapToHoSoResponse);
     }
 

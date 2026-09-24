@@ -4,6 +4,7 @@ import duan.com.example.dto.request.ReviewRequest;
 import duan.com.example.dto.response.ReviewResponse;
 import duan.com.example.dto.response.ReviewSummaryResponse;
 import org.springframework.data.domain.Page;
+import java.util.List;
 
 public interface ReviewService {
 

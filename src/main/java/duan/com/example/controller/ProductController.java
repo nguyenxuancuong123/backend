@@ -16,7 +16,6 @@ public class ProductController {
     @Autowired
     private ProductService sanphamService;
 
-
     // Lấy danh sách sản phẩm phân trang — mặc định sắp xếp theo rating giảm dần
     @GetMapping("/page")
     public ResponseEntity<Page<Product>> getSanPhamsPaginated(
